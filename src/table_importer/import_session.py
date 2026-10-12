@@ -35,6 +35,10 @@ class ImportSession:
         self._empty_frame: pd.DataFrame | None = None
         self._paused = False
         self._finished = False
+        self._chunk_iterator = source.iter_chunks(
+            sheet_name=sheet_name,
+            chunk_size=chunk_size,
+        )
 
     @property
     def is_paused(self) -> bool:
@@ -68,11 +72,15 @@ class ImportSession:
         if self._finished:
             raise ImportStateError("Import is already finished.")
 
-        chunk = self.source.read_chunk(
-            sheet_name=self.sheet_name,
-            offset=self.offset,
-            chunk_size=self.chunk_size,
-        )
+        try:
+            chunk = next(self._chunk_iterator)
+        except StopIteration:
+            self._finished = True
+
+            if self._empty_frame is None:
+                self._empty_frame = pd.DataFrame()
+
+            return self._empty_frame.iloc[:0].copy()
 
         if self._empty_frame is None:
             self._empty_frame = chunk.iloc[:0].copy()

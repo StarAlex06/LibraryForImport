@@ -1,18 +1,18 @@
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from table_importer.import_session import ImportSession
+
 import pandas as pd
 
 from table_importer.csv_source import CsvSource
 from table_importer.excel_source import ExcelSource
-from table_importer.sqlite_source import SQLiteSource
 from table_importer.exceptions import (
     SheetNotFoundError,
-    TypeConversionError,
 )
+from table_importer.import_session import ImportSession
 from table_importer.metadata import SheetMetadata
 from table_importer.registry import SourceRegistry
+from table_importer.sqlite_source import SQLiteSource
 
 
 class TableImporter:

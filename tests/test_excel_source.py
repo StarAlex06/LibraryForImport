@@ -131,3 +131,88 @@ def test_import_empty_excel_sheet_preserves_columns(tmp_path):
 
     assert result.empty
     assert result.columns.tolist() == ["name", "age"]
+def test_iter_chunks_reads_all_rows_in_order(tmp_path):
+    import pandas as pd
+
+    from table_importer.excel_source import ExcelSource
+
+    path = tmp_path / "stream.xlsx"
+    pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["a", "b", "c", "d", "e"],
+        }
+    ).to_excel(path, index=False, sheet_name="Data")
+
+    source = ExcelSource(path)
+    chunks = list(source.iter_chunks("Data", chunk_size=2))
+
+    assert [len(chunk) for chunk in chunks] == [2, 2, 1]
+
+    result = pd.concat(chunks, ignore_index=True)
+    assert result["id"].tolist() == [1, 2, 3, 4, 5]
+    assert result["name"].tolist() == ["a", "b", "c", "d", "e"]
+
+
+def test_iter_chunks_respects_initial_offset(tmp_path):
+    import pandas as pd
+
+    from table_importer.excel_source import ExcelSource
+
+    path = tmp_path / "offset.xlsx"
+    pd.DataFrame({"id": [10, 20, 30, 40, 50]}).to_excel(
+        path, index=False, sheet_name="Data"
+    )
+
+    source = ExcelSource(path)
+    chunks = list(
+        source.iter_chunks("Data", chunk_size=2, offset=2)
+    )
+
+    result = pd.concat(chunks, ignore_index=True)
+    assert result["id"].tolist() == [30, 40, 50]
+
+
+def test_iter_chunks_preserves_columns_for_empty_sheet(tmp_path):
+    import pandas as pd
+
+    from table_importer.excel_source import ExcelSource
+
+    path = tmp_path / "empty.xlsx"
+    pd.DataFrame(columns=["id", "name"]).to_excel(
+        path, index=False, sheet_name="Data"
+    )
+
+    source = ExcelSource(path)
+    chunks = list(source.iter_chunks("Data", chunk_size=2))
+
+    assert len(chunks) == 1
+    assert chunks[0].empty
+    assert list(chunks[0].columns) == ["id", "name"]
+
+    
+def test_iter_chunks_preserves_blank_rows_in_middle(tmp_path):
+    import pandas as pd
+
+    from table_importer.excel_source import ExcelSource
+
+    path = tmp_path / "blank_row.xlsx"
+    pd.DataFrame(
+        {
+            "id": [1, None, 3],
+            "name": ["Alice", None, "Charlie"],
+        }
+    ).to_excel(path, index=False, sheet_name="Data")
+
+    source = ExcelSource(path)
+    chunks = list(source.iter_chunks("Data", chunk_size=2))
+
+    result = pd.concat(chunks, ignore_index=True)
+
+    assert len(result) == 3
+    assert result["id"].iloc[0] == 1
+    assert pd.isna(result["id"].iloc[1])
+    assert result["id"].iloc[2] == 3
+    assert result["name"].iloc[0] == "Alice"
+    assert pd.isna(result["name"].iloc[1])
+    assert result["name"].iloc[2] == "Charlie"

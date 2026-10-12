@@ -1,5 +1,4 @@
 
-from pathlib import Path
 
 import pandas as pd
 
@@ -105,4 +104,43 @@ class CsvSource(DataSource):
         except Exception as exc:
             raise DataImportError(
                 f"Could not read CSV file {self.path}: {exc}"
+            ) from exc
+
+    def iter_chunks(
+        self,
+        sheet_name: str,
+        chunk_size: int,
+        offset: int = 0,
+    ):
+        """Read CSV chunks using one persistent pandas reader."""
+        self._check_file()
+        self._check_sheet_name(sheet_name)
+
+        if offset < 0:
+            raise ValueError("offset cannot be negative.")
+
+        if chunk_size < 1:
+            raise ValueError("chunk_size must be greater than zero.")
+
+        try:
+            reader = pd.read_csv(
+                self.path,
+                skiprows=range(1, offset + 1),
+                chunksize=chunk_size,
+            )
+
+            yielded_any = False
+
+            with reader:
+                for chunk in reader:
+                    yielded_any = True
+                    yield chunk
+
+            if not yielded_any:
+                # Preserve the column names for an empty CSV.
+                yield pd.read_csv(self.path, nrows=0)
+
+        except Exception as exc:
+            raise DataImportError(
+                f"Could not stream CSV file {self.path}: {exc}"
             ) from exc

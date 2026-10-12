@@ -1,11 +1,11 @@
 
 import pandas as pd
 import pytest
+
 from table_importer import CsvSource, TableImporter
-from table_importer import CsvSource
 from table_importer.exceptions import (
-    SourceNotFoundError,
     SheetNotFoundError,
+    SourceNotFoundError,
 )
 
 
@@ -118,3 +118,54 @@ def test_read_empty_csv_preserves_columns(tmp_path):
 
     assert result.empty
     assert result.columns.tolist() == ["name", "age"]
+def test_iter_chunks_reads_all_rows_in_order(tmp_path):
+
+    from table_importer.csv_source import CsvSource
+
+    path = tmp_path / "stream.csv"
+    pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["a", "b", "c", "d", "e"],
+        }
+    ).to_csv(path, index=False)
+
+    source = CsvSource(path)
+    chunks = list(source.iter_chunks(path.name, chunk_size=2))
+
+    assert [len(chunk) for chunk in chunks] == [2, 2, 1]
+    result = pd.concat(chunks, ignore_index=True)
+
+    assert result["id"].tolist() == [1, 2, 3, 4, 5]
+    assert result["name"].tolist() == ["a", "b", "c", "d", "e"]
+
+
+def test_iter_chunks_respects_initial_offset(tmp_path):
+
+    from table_importer.csv_source import CsvSource
+
+    path = tmp_path / "offset.csv"
+    pd.DataFrame({"id": [10, 20, 30, 40, 50]}).to_csv(
+        path, index=False
+    )
+
+    source = CsvSource(path)
+    chunks = list(source.iter_chunks(path.name, chunk_size=2, offset=2))
+    result = pd.concat(chunks, ignore_index=True)
+
+    assert result["id"].tolist() == [30, 40, 50]
+
+
+def test_iter_chunks_preserves_columns_for_empty_csv(tmp_path):
+
+    from table_importer.csv_source import CsvSource
+
+    path = tmp_path / "empty.csv"
+    pd.DataFrame(columns=["id", "name"]).to_csv(path, index=False)
+
+    source = CsvSource(path)
+    chunks = list(source.iter_chunks(path.name, chunk_size=2))
+
+    assert len(chunks) == 1
+    assert chunks[0].empty
+    assert list(chunks[0].columns) == ["id", "name"]

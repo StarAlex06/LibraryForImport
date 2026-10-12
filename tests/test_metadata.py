@@ -1,5 +1,6 @@
 from table_importer import ColumnMetadata, SheetMetadata
 
+
 def test_column_metadata():
     column = ColumnMetadata(
         name="age",

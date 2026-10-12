@@ -151,3 +151,63 @@ def test_session_progress_is_monotonic(csv_file):
 
     assert progress == [2, 4, 5]
     assert progress == sorted(progress)
+def test_session_pause_and_resume_without_duplicate_rows(tmp_path):
+    import pandas as pd
+    import pytest
+
+    from table_importer.csv_source import CsvSource
+    from table_importer.exceptions import ImportStateError
+    from table_importer.import_session import ImportSession
+
+    path = tmp_path / "pause.csv"
+    pd.DataFrame({"id": [1, 2, 3, 4, 5]}).to_csv(
+        path, index=False
+    )
+
+    session = ImportSession(
+        source=CsvSource(path),
+        sheet_name=path.name,
+        chunk_size=2,
+    )
+
+    first_chunk = session.read_next_chunk()
+    assert first_chunk["id"].tolist() == [1, 2]
+
+    session.pause()
+
+    with pytest.raises(ImportStateError):
+        session.read_next_chunk()
+
+    session.resume()
+
+    while not session.is_finished:
+        session.read_next_chunk()
+
+    assert session.get_result()["id"].tolist() == [1, 2, 3, 4, 5]
+
+
+def test_session_converts_column_types(tmp_path):
+    import pandas as pd
+
+    from table_importer.csv_source import CsvSource
+    from table_importer.import_session import ImportSession
+
+    path = tmp_path / "types.csv"
+    pd.DataFrame({"id": ["1", "2", "3"]}).to_csv(
+        path, index=False
+    )
+
+    session = ImportSession(
+        source=CsvSource(path),
+        sheet_name=path.name,
+        chunk_size=2,
+        dtype={"id": "int64"},
+    )
+
+    while not session.is_finished:
+        session.read_next_chunk()
+
+    result = session.get_result()
+
+    assert result["id"].tolist() == [1, 2, 3]
+    assert str(result["id"].dtype) == "int64"

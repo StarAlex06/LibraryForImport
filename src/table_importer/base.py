@@ -1,7 +1,6 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
@@ -37,3 +36,30 @@ class DataSource(ABC):
     ) -> pd.DataFrame:
         """Read a chunk of rows starting at the given offset."""
         raise NotImplementedError
+
+    def iter_chunks(
+        self,
+        sheet_name: str,
+        chunk_size: int,
+        offset: int = 0,
+    ):
+        """Iterate over data chunks using the existing read_chunk method."""
+        if chunk_size < 1:
+            raise ValueError("chunk_size must be greater than zero.")
+
+        if offset < 0:
+            raise ValueError("offset cannot be negative.")
+
+        while True:
+            chunk = self.read_chunk(
+                sheet_name=sheet_name,
+                offset=offset,
+                chunk_size=chunk_size,
+            )
+
+            yield chunk
+
+            if chunk.empty or len(chunk) < chunk_size:
+                return
+
+            offset += len(chunk)

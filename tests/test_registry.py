@@ -1,6 +1,8 @@
 import pytest
+
 from table_importer import DataSource, SourceRegistry
 from table_importer.exceptions import UnsupportedFormatError
+
 
 class DummySource(DataSource):
     """Minimal source implementation for registry tests."""
