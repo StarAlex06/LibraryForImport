@@ -1,4 +1,3 @@
-
 import pandas as pd
 import pytest
 
@@ -13,11 +12,7 @@ from table_importer.exceptions import (
 def csv_file(tmp_path):
     path = tmp_path / "people.csv"
     path.write_text(
-        "name,age\n"
-        "Alice,20\n"
-        "Bob,25\n"
-        "Charlie,\n"
-        "Diana,30\n",
+        "name,age\nAlice,20\nBob,25\nCharlie,\nDiana,30\n",
         encoding="utf-8",
     )
     return path
@@ -51,10 +46,7 @@ def test_scan_entire_small_file(csv_file):
     assert metadata.row_count_is_exact is True
     assert metadata.missing_counts_are_exact is True
 
-    age_column = next(
-        column for column in metadata.columns
-        if column.name == "age"
-    )
+    age_column = next(column for column in metadata.columns if column.name == "age")
     assert age_column.missing_count == 1
     assert age_column.scanned_count == 4
 
@@ -94,6 +86,7 @@ def test_invalid_chunk_arguments(csv_file):
     with pytest.raises(ValueError):
         source.read_chunk("people.csv", offset=0, chunk_size=0)
 
+
 def test_scan_header_only_csv(tmp_path):
     path = tmp_path / "empty.csv"
     path.write_text("name,age\n", encoding="utf-8")
@@ -104,9 +97,7 @@ def test_scan_header_only_csv(tmp_path):
     assert metadata.row_count == 0
     assert metadata.row_count_is_exact
     assert metadata.column_count == 2
-    assert [column.name for column in metadata.columns] == [
-        "name", "age"
-    ]
+    assert [column.name for column in metadata.columns] == ["name", "age"]
 
 
 def test_read_empty_csv_preserves_columns(tmp_path):
@@ -118,6 +109,8 @@ def test_read_empty_csv_preserves_columns(tmp_path):
 
     assert result.empty
     assert result.columns.tolist() == ["name", "age"]
+
+
 def test_iter_chunks_reads_all_rows_in_order(tmp_path):
 
     from table_importer.csv_source import CsvSource
@@ -145,9 +138,7 @@ def test_iter_chunks_respects_initial_offset(tmp_path):
     from table_importer.csv_source import CsvSource
 
     path = tmp_path / "offset.csv"
-    pd.DataFrame({"id": [10, 20, 30, 40, 50]}).to_csv(
-        path, index=False
-    )
+    pd.DataFrame({"id": [10, 20, 30, 40, 50]}).to_csv(path, index=False)
 
     source = CsvSource(path)
     chunks = list(source.iter_chunks(path.name, chunk_size=2, offset=2))

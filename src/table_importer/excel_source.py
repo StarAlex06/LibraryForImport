@@ -18,14 +18,10 @@ class ExcelSource(DataSource):
 
     def _check_file(self) -> None:
         if not self.path.exists():
-            raise SourceNotFoundError(
-                f"File does not exist: {self.path}"
-            )
+            raise SourceNotFoundError(f"File does not exist: {self.path}")
 
         if not self.path.is_file():
-            raise SourceNotFoundError(
-                f"Path is not a file: {self.path}"
-            )
+            raise SourceNotFoundError(f"Path is not a file: {self.path}")
 
     def list_sheets(self) -> list[str]:
         """Return names of all worksheets in the workbook."""
@@ -41,9 +37,7 @@ class ExcelSource(DataSource):
 
     def _check_sheet_name(self, sheet_name: str) -> None:
         if sheet_name not in self.list_sheets():
-            raise SheetNotFoundError(
-                f"Excel source has no sheet named {sheet_name!r}."
-            )
+            raise SheetNotFoundError(f"Excel source has no sheet named {sheet_name!r}.")
 
     def scan(
         self,
@@ -123,6 +117,7 @@ class ExcelSource(DataSource):
             raise DataImportError(
                 f"Could not read Excel sheet {sheet_name!r}: {exc}"
             ) from exc
+
     def iter_chunks(
         self,
         sheet_name: str,
@@ -170,7 +165,6 @@ class ExcelSource(DataSource):
                     yield empty_frame
                     return
 
-
             batch = []
             pending_blank_rows = []
 
@@ -205,7 +199,6 @@ class ExcelSource(DataSource):
             elif offset == 0:
                 # An empty worksheet should still preserve its columns.
                 yield empty_frame
-
 
         except Exception as exc:
             raise DataImportError(

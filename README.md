@@ -42,12 +42,14 @@ importer = TableImporter()
 # Получение метаданных об источнике
 metadata = importer.scan("data.csv", sample_size=1000)
 
-for sheet in metadata:
-    print(sheet.name)
-    print(sheet.row_count)
-    print(sheet.columns)
+print(metadata.name)
+print(metadata.row_count)
+print(metadata.column_count)
 
-# Импорт данных в pandas DataFrame
+for column in metadata.columns:
+    print(column.name, column.data_type, column.missing_count)
+
+# Импорт данных
 df = importer.import_data(
     "data.csv",
     chunk_size=10000,
@@ -102,9 +104,7 @@ session = importer.create_session(
     "data.csv",
     chunk_size=1000,
     dtype={"id": "int64"},
-    progress_callback=lambda rows: print(
-        f"Импортировано строк: {rows}"
-    ),
+    progress_callback=lambda rows: print(f"Импортировано строк: {rows}"),
 )
 ```
 

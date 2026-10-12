@@ -1,4 +1,3 @@
-
 from collections.abc import Callable, Mapping
 
 import pandas as pd
@@ -65,9 +64,7 @@ class ImportSession:
     def read_next_chunk(self) -> pd.DataFrame:
         """Read and store the next chunk."""
         if self._paused:
-            raise ImportStateError(
-                "Import is paused. Call resume() before reading."
-            )
+            raise ImportStateError("Import is paused. Call resume() before reading.")
 
         if self._finished:
             raise ImportStateError("Import is already finished.")

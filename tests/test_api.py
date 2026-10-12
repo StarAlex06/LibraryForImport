@@ -1,4 +1,3 @@
-
 import pandas as pd
 import pytest
 
@@ -13,12 +12,7 @@ from table_importer.exceptions import (
 def csv_file(tmp_path):
     path = tmp_path / "people.csv"
     path.write_text(
-        "name,age\n"
-        "Alice,20\n"
-        "Bob,25\n"
-        "Charlie,30\n"
-        "Diana,35\n"
-        "Eve,40\n",
+        "name,age\nAlice,20\nBob,25\nCharlie,30\nDiana,35\nEve,40\n",
         encoding="utf-8",
     )
     return path

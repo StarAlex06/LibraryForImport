@@ -1,4 +1,3 @@
-
 import sqlite3
 
 import pandas as pd
@@ -18,14 +17,10 @@ class SQLiteSource(DataSource):
 
     def _check_file(self) -> None:
         if not self.path.exists():
-            raise SourceNotFoundError(
-                f"Database file does not exist: {self.path}"
-            )
+            raise SourceNotFoundError(f"Database file does not exist: {self.path}")
 
         if not self.path.is_file():
-            raise SourceNotFoundError(
-                f"Path is not a file: {self.path}"
-            )
+            raise SourceNotFoundError(f"Path is not a file: {self.path}")
 
     def _connect(self) -> sqlite3.Connection:
         """Open a connection to an existing database."""
@@ -65,9 +60,7 @@ class SQLiteSource(DataSource):
 
             return [row[0] for row in rows]
         except sqlite3.Error as exc:
-            raise ScanError(
-                f"Could not list tables in {self.path}: {exc}"
-            ) from exc
+            raise ScanError(f"Could not list tables in {self.path}: {exc}") from exc
         finally:
             connection.close()
 

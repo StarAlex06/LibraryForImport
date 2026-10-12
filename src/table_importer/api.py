@@ -1,4 +1,3 @@
-
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
@@ -24,7 +23,7 @@ class TableImporter:
         if registry is None:
             self.registry.register([".csv"], CsvSource)
             self.registry.register([".xlsx"], ExcelSource)
-            self.registry.register([".db",".sqlite",".sqlite3"],SQLiteSource)
+            self.registry.register([".db", ".sqlite", ".sqlite3"], SQLiteSource)
 
     def _create_source(self, path: str | Path):
         source_class = self.registry.get_source_class(path)
@@ -85,7 +84,6 @@ class TableImporter:
             sheet_name=selected_sheet,
             sample_size=sample_size,
         )
-
 
     def import_data(
         self,

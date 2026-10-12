@@ -1,4 +1,3 @@
-
 class TableImporterError(Exception):
     """Base exception for all table importer errors."""
 

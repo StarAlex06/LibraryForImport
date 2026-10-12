@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from table_importer.base import DataSource
@@ -21,9 +20,7 @@ class SourceRegistry:
             normalized = self._normalize_extension(extension)
 
             if normalized in self._sources:
-                raise ValueError(
-                    f"Extension {normalized!r} is already registered."
-                )
+                raise ValueError(f"Extension {normalized!r} is already registered.")
 
             self._sources[normalized] = source_class
 

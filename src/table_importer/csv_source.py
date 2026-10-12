@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 
 from table_importer.base import DataSource
@@ -17,20 +15,14 @@ class CsvSource(DataSource):
 
     def _check_file(self) -> None:
         if not self.path.exists():
-            raise SourceNotFoundError(
-                f"File does not exist: {self.path}"
-            )
+            raise SourceNotFoundError(f"File does not exist: {self.path}")
 
         if not self.path.is_file():
-            raise SourceNotFoundError(
-                f"Path is not a file: {self.path}"
-            )
+            raise SourceNotFoundError(f"Path is not a file: {self.path}")
 
     def _check_sheet_name(self, sheet_name: str) -> None:
         if sheet_name not in self.list_sheets():
-            raise SheetNotFoundError(
-                f"CSV source has no sheet named {sheet_name!r}."
-            )
+            raise SheetNotFoundError(f"CSV source has no sheet named {sheet_name!r}.")
 
     def list_sheets(self) -> list[str]:
         """Return the CSV filename as the only available sheet."""
@@ -51,9 +43,7 @@ class CsvSource(DataSource):
         try:
             data = pd.read_csv(self.path, nrows=sample_size + 1)
         except Exception as exc:
-            raise ScanError(
-                f"Could not scan CSV file {self.path}: {exc}"
-            ) from exc
+            raise ScanError(f"Could not scan CSV file {self.path}: {exc}") from exc
 
         scanned_data = data.iloc[:sample_size]
         scanned_rows = len(scanned_data)

@@ -1,4 +1,3 @@
-
 import pytest
 
 from table_importer import TableImporter
@@ -9,12 +8,7 @@ from table_importer.exceptions import ImportStateError
 def csv_file(tmp_path):
     path = tmp_path / "people.csv"
     path.write_text(
-        "name,age\n"
-        "Alice,20\n"
-        "Bob,25\n"
-        "Charlie,30\n"
-        "Diana,35\n"
-        "Eve,40\n",
+        "name,age\nAlice,20\nBob,25\nCharlie,30\nDiana,35\nEve,40\n",
         encoding="utf-8",
     )
     return path
@@ -118,6 +112,7 @@ def test_import_data_still_works(csv_file):
         "Eve",
     ]
 
+
 def test_session_finishes_on_exact_chunk_boundary(csv_file):
     importer = TableImporter()
     session = importer.create_session(csv_file, chunk_size=5)
@@ -151,6 +146,8 @@ def test_session_progress_is_monotonic(csv_file):
 
     assert progress == [2, 4, 5]
     assert progress == sorted(progress)
+
+
 def test_session_pause_and_resume_without_duplicate_rows(tmp_path):
     import pandas as pd
     import pytest
@@ -160,9 +157,7 @@ def test_session_pause_and_resume_without_duplicate_rows(tmp_path):
     from table_importer.import_session import ImportSession
 
     path = tmp_path / "pause.csv"
-    pd.DataFrame({"id": [1, 2, 3, 4, 5]}).to_csv(
-        path, index=False
-    )
+    pd.DataFrame({"id": [1, 2, 3, 4, 5]}).to_csv(path, index=False)
 
     session = ImportSession(
         source=CsvSource(path),
@@ -193,9 +188,7 @@ def test_session_converts_column_types(tmp_path):
     from table_importer.import_session import ImportSession
 
     path = tmp_path / "types.csv"
-    pd.DataFrame({"id": ["1", "2", "3"]}).to_csv(
-        path, index=False
-    )
+    pd.DataFrame({"id": ["1", "2", "3"]}).to_csv(path, index=False)
 
     session = ImportSession(
         source=CsvSource(path),

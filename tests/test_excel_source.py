@@ -1,4 +1,3 @@
-
 import pandas as pd
 import pytest
 
@@ -21,9 +20,9 @@ def excel_file(tmp_path):
             }
         ).to_excel(writer, sheet_name="People", index=False)
 
-        pd.DataFrame(
-            {"city": ["Moscow", "Berlin"]}
-        ).to_excel(writer, sheet_name="Cities", index=False)
+        pd.DataFrame({"city": ["Moscow", "Berlin"]}).to_excel(
+            writer, sheet_name="Cities", index=False
+        )
 
     return path
 
@@ -91,9 +90,8 @@ def test_api_imports_excel(excel_file):
         chunk_size=2,
     )
 
-    assert result["name"].tolist() == [
-        "Alice", "Bob", "Charlie", "Diana", "Eve"
-    ]
+    assert result["name"].tolist() == ["Alice", "Bob", "Charlie", "Diana", "Eve"]
+
 
 def test_scan_empty_excel_sheet(tmp_path):
     path = tmp_path / "empty.xlsx"
@@ -111,9 +109,7 @@ def test_scan_empty_excel_sheet(tmp_path):
     assert metadata.row_count == 0
     assert metadata.row_count_is_exact
     assert metadata.column_count == 2
-    assert [column.name for column in metadata.columns] == [
-        "name", "age"
-    ]
+    assert [column.name for column in metadata.columns] == ["name", "age"]
 
 
 def test_import_empty_excel_sheet_preserves_columns(tmp_path):
@@ -131,6 +127,8 @@ def test_import_empty_excel_sheet_preserves_columns(tmp_path):
 
     assert result.empty
     assert result.columns.tolist() == ["name", "age"]
+
+
 def test_iter_chunks_reads_all_rows_in_order(tmp_path):
     import pandas as pd
 
@@ -165,9 +163,7 @@ def test_iter_chunks_respects_initial_offset(tmp_path):
     )
 
     source = ExcelSource(path)
-    chunks = list(
-        source.iter_chunks("Data", chunk_size=2, offset=2)
-    )
+    chunks = list(source.iter_chunks("Data", chunk_size=2, offset=2))
 
     result = pd.concat(chunks, ignore_index=True)
     assert result["id"].tolist() == [30, 40, 50]
@@ -179,9 +175,7 @@ def test_iter_chunks_preserves_columns_for_empty_sheet(tmp_path):
     from table_importer.excel_source import ExcelSource
 
     path = tmp_path / "empty.xlsx"
-    pd.DataFrame(columns=["id", "name"]).to_excel(
-        path, index=False, sheet_name="Data"
-    )
+    pd.DataFrame(columns=["id", "name"]).to_excel(path, index=False, sheet_name="Data")
 
     source = ExcelSource(path)
     chunks = list(source.iter_chunks("Data", chunk_size=2))
@@ -190,7 +184,7 @@ def test_iter_chunks_preserves_columns_for_empty_sheet(tmp_path):
     assert chunks[0].empty
     assert list(chunks[0].columns) == ["id", "name"]
 
-    
+
 def test_iter_chunks_preserves_blank_rows_in_middle(tmp_path):
     import pandas as pd
 

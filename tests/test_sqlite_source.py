@@ -1,4 +1,3 @@
-
 import sqlite3
 
 import pytest
@@ -115,9 +114,8 @@ def test_api_imports_sqlite(sqlite_file):
         chunk_size=2,
     )
 
-    assert result["name"].tolist() == [
-        "Alice", "Bob", "Charlie", "Diana", "Eve"
-    ]
+    assert result["name"].tolist() == ["Alice", "Bob", "Charlie", "Diana", "Eve"]
+
 
 def test_scan_empty_sqlite_table(tmp_path):
     import sqlite3
@@ -125,9 +123,7 @@ def test_scan_empty_sqlite_table(tmp_path):
     path = tmp_path / "empty.db"
 
     with sqlite3.connect(path) as connection:
-        connection.execute(
-            "CREATE TABLE people (name TEXT, age INTEGER)"
-        )
+        connection.execute("CREATE TABLE people (name TEXT, age INTEGER)")
 
     source = SQLiteSource(path)
     metadata = source.scan("people", sample_size=10)
@@ -135,9 +131,7 @@ def test_scan_empty_sqlite_table(tmp_path):
     assert metadata.row_count == 0
     assert metadata.row_count_is_exact
     assert metadata.column_count == 2
-    assert [column.name for column in metadata.columns] == [
-        "name", "age"
-    ]
+    assert [column.name for column in metadata.columns] == ["name", "age"]
 
 
 def test_import_empty_sqlite_table_preserves_columns(tmp_path):
@@ -146,9 +140,7 @@ def test_import_empty_sqlite_table_preserves_columns(tmp_path):
     path = tmp_path / "empty.db"
 
     with sqlite3.connect(path) as connection:
-        connection.execute(
-            "CREATE TABLE people (name TEXT, age INTEGER)"
-        )
+        connection.execute("CREATE TABLE people (name TEXT, age INTEGER)")
 
     importer = TableImporter()
     result = importer.import_data(path, sheet_name="people")
