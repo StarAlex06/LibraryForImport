@@ -1,5 +1,6 @@
 from table_importer.metadata import ColumnMetadata, SheetMetadata
-
+from table_importer.base import DataSource
+from table_importer.registry import SourceRegistry
 from table_importer.exceptions import (
     TableImporterError,
     SourceNotFoundError,
@@ -18,4 +19,6 @@ __all__ = ["ColumnMetadata",
            "ScanError",
            "DataImportError",
            "TypeConversionError",
-           "ImportStateError"]
+           "ImportStateError",
+           "DataSource",
+           "SourceRegistry"]
