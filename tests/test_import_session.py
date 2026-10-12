@@ -117,3 +117,37 @@ def test_import_data_still_works(csv_file):
         "Diana",
         "Eve",
     ]
+
+def test_session_finishes_on_exact_chunk_boundary(csv_file):
+    importer = TableImporter()
+    session = importer.create_session(csv_file, chunk_size=5)
+
+    first_chunk = session.read_next_chunk()
+
+    assert len(first_chunk) == 5
+    # После полного чанка сессия ещё не знает,
+    # есть ли в источнике дополнительные строки.
+    assert not session.is_finished
+
+    last_chunk = session.read_next_chunk()
+
+    assert last_chunk.empty
+    assert session.is_finished
+    assert len(session.get_result()) == 5
+
+
+def test_session_progress_is_monotonic(csv_file):
+    progress = []
+    importer = TableImporter()
+
+    session = importer.create_session(
+        csv_file,
+        chunk_size=2,
+        progress_callback=progress.append,
+    )
+
+    while not session.is_finished:
+        session.read_next_chunk()
+
+    assert progress == [2, 4, 5]
+    assert progress == sorted(progress)

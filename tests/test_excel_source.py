@@ -94,3 +94,40 @@ def test_api_imports_excel(excel_file):
     assert result["name"].tolist() == [
         "Alice", "Bob", "Charlie", "Diana", "Eve"
     ]
+
+def test_scan_empty_excel_sheet(tmp_path):
+    path = tmp_path / "empty.xlsx"
+
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        pd.DataFrame(columns=["name", "age"]).to_excel(
+            writer,
+            sheet_name="People",
+            index=False,
+        )
+
+    source = ExcelSource(path)
+    metadata = source.scan("People", sample_size=10)
+
+    assert metadata.row_count == 0
+    assert metadata.row_count_is_exact
+    assert metadata.column_count == 2
+    assert [column.name for column in metadata.columns] == [
+        "name", "age"
+    ]
+
+
+def test_import_empty_excel_sheet_preserves_columns(tmp_path):
+    path = tmp_path / "empty.xlsx"
+
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        pd.DataFrame(columns=["name", "age"]).to_excel(
+            writer,
+            sheet_name="People",
+            index=False,
+        )
+
+    importer = TableImporter()
+    result = importer.import_data(path, sheet_name="People")
+
+    assert result.empty
+    assert result.columns.tolist() == ["name", "age"]
