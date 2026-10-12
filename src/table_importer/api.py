@@ -5,6 +5,8 @@ from table_importer.import_session import ImportSession
 import pandas as pd
 
 from table_importer.csv_source import CsvSource
+from table_importer.excel_source import ExcelSource
+from table_importer.sqlite_source import SQLiteSource
 from table_importer.exceptions import (
     SheetNotFoundError,
     TypeConversionError,
@@ -21,6 +23,8 @@ class TableImporter:
 
         if registry is None:
             self.registry.register([".csv"], CsvSource)
+            self.registry.register([".xlsx"], ExcelSource)
+            self.registry.register([".db",".sqlite",".sqlite3"],SQLiteSource)
 
     def _create_source(self, path: str | Path):
         source_class = self.registry.get_source_class(path)
