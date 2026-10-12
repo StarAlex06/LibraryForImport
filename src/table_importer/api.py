@@ -1,7 +1,7 @@
 
 from collections.abc import Callable, Mapping
 from pathlib import Path
-
+from table_importer.import_session import ImportSession
 import pandas as pd
 
 from table_importer.csv_source import CsvSource
@@ -25,6 +25,26 @@ class TableImporter:
     def _create_source(self, path: str | Path):
         source_class = self.registry.get_source_class(path)
         return source_class(path)
+
+    def create_session(
+        self,
+        path: str | Path,
+        sheet_name: str | None = None,
+        chunk_size: int = 10_000,
+        dtype: Mapping[str, str] | None = None,
+        progress_callback: Callable[[int], None] | None = None,
+    ) -> ImportSession:
+        """Create a resumable import session."""
+        source = self._create_source(path)
+        selected_sheet = self._resolve_sheet(source, sheet_name)
+
+        return ImportSession(
+            source=source,
+            sheet_name=selected_sheet,
+            chunk_size=chunk_size,
+            dtype=dtype,
+            progress_callback=progress_callback,
+        )
 
     @staticmethod
     def _resolve_sheet(
@@ -62,6 +82,7 @@ class TableImporter:
             sample_size=sample_size,
         )
 
+
     def import_data(
         self,
         path: str | Path,
@@ -71,41 +92,15 @@ class TableImporter:
         progress_callback: Callable[[int], None] | None = None,
     ) -> pd.DataFrame:
         """Import a complete source into one pandas DataFrame."""
-        if chunk_size < 1:
-            raise ValueError("chunk_size must be greater than zero.")
+        session = self.create_session(
+            path=path,
+            sheet_name=sheet_name,
+            chunk_size=chunk_size,
+            dtype=dtype,
+            progress_callback=progress_callback,
+        )
 
-        source = self._create_source(path)
-        selected_sheet = self._resolve_sheet(source, sheet_name)
+        while not session.is_finished:
+            session.read_next_chunk()
 
-        chunks: list[pd.DataFrame] = []
-        offset = 0
-
-        while True:
-            chunk = source.read_chunk(
-                sheet_name=selected_sheet,
-                offset=offset,
-                chunk_size=chunk_size,
-            )
-
-            if dtype:
-                try:
-                    chunk = chunk.astype(dict(dtype))
-                except (ValueError, TypeError, OverflowError) as exc:
-                    raise TypeConversionError(
-                        f"Could not convert column types: {exc}"
-                    ) from exc
-
-            if not chunk.empty:
-                chunks.append(chunk)
-                offset += len(chunk)
-
-                if progress_callback is not None:
-                    progress_callback(offset)
-
-            if len(chunk) < chunk_size:
-                break
-
-        if not chunks:
-            return pd.DataFrame()
-
-        return pd.concat(chunks, ignore_index=True)
+        return session.get_result()

@@ -1,4 +1,5 @@
 from table_importer.api import TableImporter
+from table_importer.import_session import ImportSession
 from table_importer.metadata import ColumnMetadata, SheetMetadata
 from table_importer.base import DataSource
 from table_importer.registry import SourceRegistry
@@ -25,4 +26,5 @@ __all__ = ["ColumnMetadata",
            "DataSource",
            "SourceRegistry",
            "CsvSource",
-           "TableImporter"]
+           "TableImporter",
+           "ImportSession"]
