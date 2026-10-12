@@ -27,3 +27,6 @@ dist/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# PyCharm
+.idea/
