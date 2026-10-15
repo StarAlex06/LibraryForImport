@@ -89,7 +89,7 @@ class ImportSession:
         if self.dtype:
             try:
                 chunk = chunk.astype(self.dtype)
-            except (ValueError, TypeError, OverflowError) as exc:
+            except (KeyError, ValueError, TypeError, OverflowError) as exc:
                 raise TypeConversionError(
                     f"Could not convert column types: {exc}"
                 ) from exc
